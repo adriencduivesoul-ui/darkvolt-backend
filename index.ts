@@ -316,8 +316,8 @@ async function startServer() {
     res.status(200).json({ service: "DarkVolt API", status: "running" });
   });
 
-  const port = process.env.PORT || 3000;
-  server.listen(port, () => {
+  const port = Number(process.env.PORT) || 3000;
+  server.listen(port, '0.0.0.0', () => {
     console.log(`[DarkVolt] Server → http://localhost:${port}`);
     console.log(`[DarkVolt] Socket.IO: chat + WebRTC signaling active`);
     console.log(`[DarkVolt] Stream key: ${streamStatus.key}`);
