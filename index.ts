@@ -79,17 +79,30 @@ async function startServer() {
   const server = createServer(app);
   const io = new SocketIO(server, {
     cors: {
-      origin: process.env.NODE_ENV === "production"
-        ? [process.env.ALLOWED_ORIGIN || "*", "http://darkvolt.cuda9641.odns.fr", "https://darkvolt.cuda9641.odns.fr"]
-        : "*",
-      methods: ["GET", "POST"],
-      credentials: true
+      origin: ["http://darkvolt.cuda9641.odns.fr", "https://darkvolt.cuda9641.odns.fr", "*"],
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      credentials: true,
+      allowedHeaders: ["Content-Type", "Authorization", "x-user-id"]
     }
   });
   app.use(express.json());
+  
+  // CORS headers pour toutes les requêtes API
+  app.use((req: any, res: any, next: any) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With, x-user-id');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200);
+    } else {
+      next();
+    }
+  });
 
   /* ── STREAM API ── */
-  app.get("/api/stream/status", (_req, res) => res.json(streamStatus));
+  app.get("/api/stream/status", (_req: any, res: any) => res.json(streamStatus));
 
   app.get("/api/stream/key", (req, res) => {
     const userId = req.headers["x-user-id"] as string;
