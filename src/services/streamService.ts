@@ -1,4 +1,4 @@
-import { supabase, supabaseAdmin } from '../config/supabase';
+import { supabase, supabaseAdmin } from '../config/supabase.js';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface StreamStatus {
