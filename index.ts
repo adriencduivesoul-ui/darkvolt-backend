@@ -77,13 +77,14 @@ function syncViewerCount(io: SocketIO) {
 async function startServer() {
   const app = express();
   const server = createServer(app);
-  const io = new SocketIO(server, { 
-    cors: { 
-      origin: process.env.NODE_ENV === "production" 
-        ? [process.env.ALLOWED_ORIGIN || "*"] 
-        : "*", 
-      methods: ["GET", "POST"] 
-    } 
+  const io = new SocketIO(server, {
+    cors: {
+      origin: process.env.NODE_ENV === "production"
+        ? [process.env.ALLOWED_ORIGIN || "*", "http://darkvolt.cuda9641.odns.fr", "https://darkvolt.cuda9641.odns.fr"]
+        : "*",
+      methods: ["GET", "POST"],
+      credentials: true
+    }
   });
   app.use(express.json());
 
