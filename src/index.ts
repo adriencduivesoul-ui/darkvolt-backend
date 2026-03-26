@@ -1,7 +1,7 @@
 import express from "express";
 import { createServer } from "http";
 import { Server as SocketIO } from "socket.io";
-import { supabase } from "./config/supabase.js";
+import { supabase, supabaseAdmin } from "./config/supabase.js";
 import { UserService } from "./services/userService.js";
 import { StreamService } from "./services/streamService.js";
 import { authenticateToken, requireStreamer, optionalAuth, AuthenticatedRequest } from "./middleware/auth.js";
@@ -82,14 +82,21 @@ async function startServer() {
   /* ── STREAM API ── */
   app.get("/api/stream/status", optionalAuth, async (req: AuthenticatedRequest, res: any) => {
     try {
-      let streamStatus = null;
-      
-      if (req.user) {
-        // Si connecté, chercher le stream de l'utilisateur
-        streamStatus = await StreamService.getActiveStream(req.user.userId);
-      } else {
-        // Si non connecté, retourner le statut par défaut
-        streamStatus = {
+      // Récupérer n'importe quel stream actif, pas seulement celui de l'utilisateur
+      const { data: activeStreams, error } = await supabaseAdmin
+        .from('streams')
+        .select('*')
+        .eq('status', 'live')
+        .order('started_at', { ascending: false })
+        .limit(1);
+
+      if (error) {
+        return res.status(500).json({ error: error.message });
+      }
+
+      if (!activeStreams || activeStreams.length === 0) {
+        // Retourner le statut par défaut
+        return res.json({
           id: null,
           streamer_id: null,
           title: "",
@@ -107,9 +114,10 @@ async function startServer() {
           recording_url: null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        };
+        });
       }
-      
+
+      const streamStatus = activeStreams[0];
       res.json(streamStatus);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
